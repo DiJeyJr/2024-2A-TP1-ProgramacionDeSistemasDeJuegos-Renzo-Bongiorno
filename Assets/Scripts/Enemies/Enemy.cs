@@ -6,32 +6,43 @@ using UnityEngine.AI;
 namespace Enemies
 {
     [RequireComponent(typeof(NavMeshAgent))]
-    public class Enemy : MonoBehaviour
+    public class Enemy : MonoBehaviour, IDamageable
     {
         [SerializeField] private NavMeshAgent agent;
         public event Action OnSpawn = delegate { };
         public event Action OnDeath = delegate { };
-    
+        
+        //HealthManger
+        private HealthManager _healthManager;
+
+        //Enemy Pool Declaration
+        private Pool<Enemy> _pool;
+
+        //Method to initialize pool on enemy class
+        public void Initialize(Pool<Enemy> pool)
+        {
+            _pool = pool;
+        }
+
+        private void Start()
+        {
+            //Get HelthManager from self
+            _healthManager = GetComponent<HealthManager>();
+        }
+
         private void Reset() => FetchComponents();
 
         private void Awake() => FetchComponents();
-    
+
         private void FetchComponents()
         {
             agent ??= GetComponent<NavMeshAgent>();
         }
 
-        private void OnEnable()
+        public void SetTarget(Transform target)
         {
-            //Is this necessary?? We're like, searching for it from every enemy D:
-            var townCenter = GameObject.FindGameObjectWithTag("TownCenter");
-            if (townCenter == null)
-            {
-                Debug.LogError($"{name}: Found no {nameof(townCenter)}!! :(");
-                return;
-            }
-
-            var destination = townCenter.transform.position;
+            agent.ResetPath();
+            var destination = target.position;
             destination.y = transform.position.y;
             agent.SetDestination(destination);
             StartCoroutine(AlertSpawn());
@@ -39,25 +50,29 @@ namespace Enemies
 
         private IEnumerator AlertSpawn()
         {
-            //Waiting one frame because event subscribers could run their onEnable after us.
             yield return null;
             OnSpawn();
         }
 
+        
         private void Update()
         {
-            if (agent.hasPath
-                && Vector3.Distance(transform.position, agent.destination) <= agent.stoppingDistance)
+            if (_healthManager.GetHealth() <= 0)
             {
-                Debug.Log($"{name}: I'll die for my people!");
                 Die();
             }
         }
 
-        private void Die()
+        public void Die()
         {
             OnDeath();
-            Destroy(gameObject);
+            
+            //Reset HP
+            _healthManager.ResetHealth();
+            
+            //Return Object To Pool and position reset
+            transform.position = transform.parent.position;
+            _pool.ReturnToPool(this);
         }
     }
 }

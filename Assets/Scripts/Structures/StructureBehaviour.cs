@@ -38,8 +38,8 @@ public class StructureBehaviour : MonoBehaviour, IDamageable
     IEnumerator Respawn()
     {
         transform.GetChild(0).gameObject.SetActive(false); //turn off model
-        _healthManager.ResetHealth();
         yield return new WaitForSeconds(respawnTime);
+        _healthManager.ResetHealth();
         transform.GetChild(0).gameObject.SetActive(true);//turn on model
     }
 }

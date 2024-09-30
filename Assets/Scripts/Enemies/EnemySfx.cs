@@ -6,9 +6,9 @@ namespace Enemies
     [RequireComponent(typeof(Enemy))]
     public class EnemySfx : MonoBehaviour
     {
-        [SerializeField] private AudioPlayer audioSourcePrefab;
-        [SerializeField] private RandomContainer<AudioClipData> spawnClips;
-        [SerializeField] private RandomContainer<AudioClipData> explosionClips;
+        //[SerializeField] private AudioPlayer audioSourcePrefab;
+        [SerializeField] private AudioClip[] spawnClips;
+        [SerializeField] private AudioClip[] explosionClips;
         private Enemy _enemy;
 
         private void Reset() => FetchComponents();
@@ -23,11 +23,11 @@ namespace Enemies
         
         private void OnEnable()
         {
-            if (!audioSourcePrefab)
+            /*if (!audioSourcePrefab)
             {
                 Debug.LogError($"{nameof(audioSourcePrefab)} is null!");
                 return;
-            }
+            }*/
             _enemy.OnSpawn += HandleSpawn;
             _enemy.OnDeath += HandleDeath;
         }
@@ -40,25 +40,20 @@ namespace Enemies
 
         private void HandleDeath()
         {
-            PlayRandomClip(explosionClips, audioSourcePrefab);
+            ServiceLocator.GetAudioManager().PlaySFX(explosionClips[Random.Range(0, explosionClips.Length)]);
         }
 
         private void HandleSpawn()
         {
-            PlayRandomClip(spawnClips, audioSourcePrefab);
+            ServiceLocator.GetAudioManager().PlaySFX(spawnClips[Random.Range(0, spawnClips.Length)]);
         }
 
-        private void PlayRandomClip(RandomContainer<AudioClipData> container, AudioPlayer sourcePrefab)
+        private void PlayRandomClip(RandomContainer<AudioClip> container)
         {
             if (!container.TryGetRandom(out var clipData))
                 return;
             
-            SpawnSource(sourcePrefab).Play(clipData);
-        }
-
-        private AudioPlayer SpawnSource(AudioPlayer prefab)
-        {
-            return Instantiate(prefab, transform.position, transform.rotation);
+            ServiceLocator.GetAudioManager().PlaySFX(clipData);
         }
     }
 }

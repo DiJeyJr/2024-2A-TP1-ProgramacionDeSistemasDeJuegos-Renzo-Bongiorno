@@ -5,16 +5,14 @@ using UnityEngine;
 
 public class DealDamage : MonoBehaviour
 {
-    [SerializeField] private int damage = 10;
-    [SerializeField] private float attackCooldown = 0.5f;
-    [SerializeField] private string targetTag;
+    [SerializeField] private ObjectStats stats;
 
     private void OnCollisionStay(Collision other)
     {
         {
-            if (other.gameObject.CompareTag(targetTag))
+            if (other.gameObject.CompareTag(stats.targetTag))
             {
-                other.gameObject.GetComponent<HealthManager>().GetDamage(damage);
+                other.gameObject.GetComponent<HealthManager>().GetDamage(stats.damage);
                 StartCoroutine(WaitForCooldown());
             }
         }
@@ -23,6 +21,6 @@ public class DealDamage : MonoBehaviour
 
     IEnumerator WaitForCooldown()
     {
-        yield return new WaitForSeconds(attackCooldown);
+        yield return new WaitForSeconds(stats.attackCooldown);
     }
 }

@@ -7,12 +7,12 @@ using UnityEngine.Serialization;
 public class HealthManager : MonoBehaviour
 {
     //Health
-    [SerializeField]private int maxHealth = 100;
-    [SerializeField]private int _health;
+    [SerializeField] private ObjectStats stats;
+    private int _health;
 
     private void OnEnable()
     {
-        _health = maxHealth;
+        _health = stats.health;
     }
 
     public int GetHealth()
@@ -32,6 +32,6 @@ public class HealthManager : MonoBehaviour
 
     public void ResetHealth()
     {
-        _health = maxHealth;
+        _health = stats.health;
     }
 }

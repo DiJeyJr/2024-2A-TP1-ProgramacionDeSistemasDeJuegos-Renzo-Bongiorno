@@ -3,54 +3,54 @@ using UnityEngine;
 
 namespace Audio
 {
-    [RequireComponent(typeof(AudioClip))]
-    public class AudioPlayer : MonoBehaviour
+    public class AudioManager : MonoBehaviour
     {
-        [SerializeField] private OnFinishAction finishAction;
-        private AudioSource _source;
-        public AudioSource Source
+        [SerializeField] private AudioSource musicSource;
+        [SerializeField] private AudioSource[] sfxSource;
+
+        private void Awake()
         {
-            get
-            {
-                _source ??= GetComponent<AudioSource>();
-                return _source;
-            }
+            ServiceLocator.RegisterAudioManager(this);
         }
         
-        public enum OnFinishAction
+        public void PlayMusic(AudioClip clip, bool loop = true)
         {
-            None,
-            Destroy,
-            Deactivate,
+            musicSource.clip = clip;
+            musicSource.loop = loop;
+            musicSource.Play();
         }
-        
-        public void Play(AudioClipData data)
+
+        public void PlaySFX(AudioClip clip)
         {
-            Source.loop = data.Loop;
-            Source.clip = data.Clip;
-            Source.outputAudioMixerGroup = data.Group;
-            Source.Play();
-            var clipLength = data.Clip.length;
-            if (finishAction == OnFinishAction.Destroy)
+            for (int i = 0; i < sfxSource.Length; i++)
             {
-                StartCoroutine(DestroySelfIn(clipLength));
-            }
-            else if (finishAction == OnFinishAction.Deactivate)
-            {
-                StartCoroutine(DeactivateIn(clipLength));
+                if (sfxSource[i].clip == null && clip != null)
+                {
+                    sfxSource[i].clip = clip;
+                    sfxSource[i].PlayOneShot(clip);
+                    StartCoroutine(ClearClip(sfxSource[i], clip.length));
+                    return;
+                }
             }
         }
 
-        private IEnumerator DestroySelfIn(float seconds)
+        public void SetMusicVolume(float volume)
         {
-            yield return new WaitForSeconds(Mathf.Max(seconds, 0));
-            Destroy(gameObject);
+            musicSource.volume = volume;
         }
-        
-        private IEnumerator DeactivateIn(float seconds)
+
+        public void SetSFXVolume(float volume)
         {
-            yield return new WaitForSeconds(Mathf.Max(seconds, 0));
-            gameObject.SetActive(false);
+            for (int i = 0; i < sfxSource.Length; i++)
+            {
+                sfxSource[i].volume = volume;
+            }
+        }
+
+        IEnumerator ClearClip(AudioSource audioSource, float time)
+        {
+            yield return new WaitForSeconds(time);
+            audioSource.clip = null;
         }
     }
 }

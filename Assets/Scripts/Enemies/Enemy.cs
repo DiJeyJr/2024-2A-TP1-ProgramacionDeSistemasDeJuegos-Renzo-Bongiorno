@@ -49,6 +49,7 @@ namespace Enemies
             {
                 agent.ResetPath();
                 agent.SetPath(path);
+                StartCoroutine(AlertSpawn());
             }
         }
 

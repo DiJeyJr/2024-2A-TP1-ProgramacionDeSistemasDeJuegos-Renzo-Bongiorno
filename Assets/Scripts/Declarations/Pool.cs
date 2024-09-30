@@ -27,7 +27,7 @@ public class Pool<T> where T : Component
 
     public T Get()
     {
-        //Try get an existing object
+        //Try to get an existing object
         if (_pool.Count > 0)
         {
             T obj = _pool.Dequeue();
@@ -48,4 +48,6 @@ public class Pool<T> where T : Component
         obj.gameObject.SetActive(false);
         _pool.Enqueue(obj);
     }
+    
+    public int Count => _pool.Count;
 }

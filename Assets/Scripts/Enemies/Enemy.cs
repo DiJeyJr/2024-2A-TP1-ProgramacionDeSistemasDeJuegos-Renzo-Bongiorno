@@ -8,7 +8,7 @@ namespace Enemies
     [RequireComponent(typeof(NavMeshAgent))]
     public class Enemy : MonoBehaviour, IDamageable
     {
-        [SerializeField] private NavMeshAgent agent;
+        private NavMeshAgent agent;
         public event Action OnSpawn = delegate { };
         public event Action OnDeath = delegate { };
         
@@ -28,6 +28,9 @@ namespace Enemies
         {
             //Get HelthManager from self
             _healthManager = GetComponent<HealthManager>();
+            
+            //Get agent
+            agent = GetComponent<NavMeshAgent>();
         }
 
         private void Reset() => FetchComponents();
@@ -39,13 +42,14 @@ namespace Enemies
             agent ??= GetComponent<NavMeshAgent>();
         }
 
-        public void SetTarget(Transform target)
+        //set path to follow
+        public void SetPath(NavMeshPath path)
         {
-            agent.ResetPath();
-            var destination = target.position;
-            destination.y = transform.position.y;
-            agent.SetDestination(destination);
-            StartCoroutine(AlertSpawn());
+            if (agent != null)
+            {
+                agent.ResetPath();
+                agent.SetPath(path);
+            }
         }
 
         private IEnumerator AlertSpawn()
@@ -73,6 +77,20 @@ namespace Enemies
             //Return Object To Pool and position reset
             transform.position = transform.parent.position;
             _pool.ReturnToPool(this);
+        }
+        
+        //Prototype
+        public Enemy Clone()
+        {
+            Enemy clone = Instantiate(this); // Clone actual object
+
+            // Assign Same pool
+            if (_pool != null)
+            {
+                clone.Initialize(_pool);
+            }
+
+            return clone;
         }
     }
 }

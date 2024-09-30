@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using Enemies;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
@@ -16,12 +17,19 @@ public class Spawner : MonoBehaviour
 
     private Pool<Enemy> _enemyPool;
 
+    //Prototype: Object to clone
+    private Enemy existingEnemy;
+    
     private void OnEnable()
     {
         if (frequency > 0) period = 1 / frequency;
 
         // Initializing Pool with enemy data
         _enemyPool = new Pool<Enemy>(enemyPrefab, poolSize, transform);
+        
+        //Getting the Object
+        existingEnemy = _enemyPool.Get();
+        existingEnemy.gameObject.SetActive(false);
     }
 
     private IEnumerator Start()
@@ -30,23 +38,37 @@ public class Spawner : MonoBehaviour
         {
             for (int i = 0; i < spawnsPerPeriod; i++)
             {
-                SpawnEnemy(targets[Random.Range(0, targets.Length)]);
+                SpawnEnemy();
             }
 
             yield return new WaitForSeconds(period);
         }
     }
 
-    private void SpawnEnemy(Transform structureTarget)
+    private void SpawnEnemy()
     {
-        var enemy = _enemyPool.Get();
-        enemy.transform.position = transform.GetChild(0).position;
-        //enemy.transform.rotation = transform.rotation;
+        Enemy enemy;
         
-        //Set Enemy Target
-        enemy.SetTarget(structureTarget);
+        //Implement Prototype to clone existing enemies
+        if (_enemyPool.Count > 0) // Check avaliable pool enemies
+        {
+            enemy = _enemyPool.Get();
+        }
+        else // Clone an enemy
+        {
+            enemy = existingEnemy.Clone();
+        }
+        
+        enemy.transform.position = transform.position;
+        enemy.transform.rotation = transform.rotation;
 
-        //Set Enemy pool
+        // Calculete path and assign
+        NavMeshPath path = new NavMeshPath();
+        if (NavMesh.CalculatePath(transform.position, targets[Random.Range(0, targets.Length)].position, NavMesh.AllAreas, path))
+        {
+            enemy.SetPath(path);
+        }
+
         enemy.Initialize(_enemyPool);
     }
 }

@@ -13,7 +13,7 @@ namespace Enemies
         public event Action OnDeath = delegate { };
         
         //HealthManger
-        private HealthManager _healthManager;
+        private IHealthSystem _healthManager;
 
         //Enemy Pool Declaration
         private Pool<Enemy> _pool;
@@ -26,9 +26,6 @@ namespace Enemies
 
         private void Start()
         {
-            //Get HelthManager from self
-            _healthManager = GetComponent<HealthManager>();
-            
             //Get agent
             agent = GetComponent<NavMeshAgent>();
         }
@@ -39,6 +36,12 @@ namespace Enemies
 
         private void FetchComponents()
         {
+            //Get HelthManager from self
+            HealthManager baseHealth = GetComponent<HealthManager>();
+            
+            _healthManager = baseHealth;
+            _healthManager = new RegenerationDecorator(_healthManager, this, 5, 2f);
+            
             agent ??= GetComponent<NavMeshAgent>();
         }
 

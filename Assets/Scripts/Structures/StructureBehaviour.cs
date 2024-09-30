@@ -7,7 +7,15 @@ public class StructureBehaviour : MonoBehaviour, IDamageable
 {
     [SerializeField] private float respawnTime = 10f;
     
-    private HealthManager _healthManager;
+    private IHealthSystem _healthManager;
+
+    private void Awake()
+    {
+        HealthManager baseHealth = GetComponent<HealthManager>();
+        
+        _healthManager = baseHealth;
+        _healthManager = new RegenerationDecorator(_healthManager, this, 5, 2f);
+    }
 
     private void Start()
     {

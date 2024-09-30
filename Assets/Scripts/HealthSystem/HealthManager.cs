@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-public class HealthManager : MonoBehaviour
+public class HealthManager : MonoBehaviour, IHealthSystem
 {
     //Health
     [SerializeField] private ObjectStats stats;
